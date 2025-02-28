@@ -1,0 +1,11 @@
+[project]
+name = "tup"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "icecream>=2.1.4",
+    "pyright>=1.1.395",
+    "ruff>=0.9.9",
+]
