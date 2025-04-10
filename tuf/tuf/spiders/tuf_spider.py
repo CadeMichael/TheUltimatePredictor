@@ -28,7 +28,13 @@ class TufSpider(scrapy.Spider):
         # need to ignore the first listed event as it is "upcoming"
         for item in response.css(".b-statistics__table-content")[1:]:
             # get event name, link, and date
-            name = item.css("a.b-link_style_black::text").get().strip()
+            name = (
+                item.css("a.b-link_style_black::text")
+                .get()
+                .strip()
+                .lower()
+                .replace(" ", "-")
+            )
             link = item.css("a.b-link_style_black::attr(href)").get().strip()
             date = item.css(".b-statistics__date::text").get().strip()
             if link and date:  # check for proper information

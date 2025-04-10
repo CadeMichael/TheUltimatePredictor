@@ -111,6 +111,8 @@ FEEDS = {
             "end_round",
             "time",
             "total_time",
+            "event_name",
+            "event_date",
         ],
         "overwrite": True,
     },
