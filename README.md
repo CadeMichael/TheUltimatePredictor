@@ -2,6 +2,7 @@
 
 - web scraped from [ufcstats](http://ufcstats.com) using [scrapy.py](https://scrapy.org/)
 - data in **fights.csv** and **fighters.csv**
+- data also stored on [kaggle](https://www.kaggle.com/datasets/cadelueker/ufc-fighter-and-fight-stats-as-of-04-9-2025/)
 
 ## fights.csv
 
