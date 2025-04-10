@@ -51,18 +51,17 @@ def allEventFights(response):
         fighter_links = row.css('td:nth-child(2) .b-link_style_black::attr(href)').getall()
         fighter1 = (fighters[0].strip().lower(), fighter_links[0])
         fighter2 = (fighters[1].strip().lower(), fighter_links[1])
+        fighters = [fighter1, fighter2]
         # check for draw
         if is_draw:
             # For draws, both fighters are considered equal
             winner = None
             loser = None
-            fighters = [fighter1, fighter2]
             outcome = "draw"
         else:
             # For wins, first fighter is the winner
             winner = fighter1
             loser = fighter2
-            fighters = None
             outcome = "win"
         # Extract the method of win and check if there's a second line with additional details
         method = [row.css('td:nth-child(8) .b-fight-details__table-text::text').get().strip()]
@@ -75,22 +74,22 @@ def allEventFights(response):
         if method_type:
             method.append(method_type)
         # get the rest of the info
-        round_ = row.css('td:nth-child(9) .b-fight-details__table-text::text').get().strip()
+        end_round = row.css('td:nth-child(9) .b-fight-details__table-text::text').get().strip()
         time = row.css('td:nth-child(10) .b-fight-details__table-text::text').get().strip()
         weight_class = row.css('td:nth-child(7) .b-fight-details__table-text::text').get().strip()
         # Convert time from "M:SS" format to total seconds
         minutes, seconds = map(float, time.split(':'))
         time_in_seconds = minutes * 60 + seconds
         # Calculate total time: (round-1)*5 minutes + current round time
-        total_time = (float(round_) - 1) * 300 + time_in_seconds  # 300 seconds = 5 minutes
+        total_time = (float(end_round) - 1) * 300 + time_in_seconds  # 300 seconds = 5 minutes
         # Store the extracted data in a dictionary
         fight_info = {
             "outcome": outcome,  # "win" or "draw"
             "winner": winner,
             "loser": loser,
-            "fighters": fighters if is_draw else None,  # Only populated for draws
+            "fighters": fighters, # included in cases of draw
             "method": method,
-            "round": round_,
+            "round": end_round,
             "time": time,
             "total_time": total_time,
             "weight_class": weight_class,
@@ -98,9 +97,9 @@ def allEventFights(response):
         # Append the fight information to the list
         fights.append(fight_info)
         if is_draw:
-            print(f"Draw between {fighter1[0]} and {fighter2[0]} via {method} @ {time} of round {round_}\n->fight time of {total_time} seconds")
+            print(f"Draw between {fighter1[0]} and {fighter2[0]} via {method} @ {time} of round {end_round}\n->fight time of {total_time} seconds")
         else:
-            print(f"{winner[0]} via {method} @ {time} of round {round_}\n->fight time of {total_time} seconds")
+            print(f"{winner[0]} via {method} @ {time} of round {end_round}\n->fight time of {total_time} seconds")
     return fights
 ```
 

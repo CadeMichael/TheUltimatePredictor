@@ -1,3 +1,5 @@
+from tuf.items import FightItem, FighterItem
+
 # Scrapy settings for tuf project
 #
 # For simplicity, this file contains only settings considered important or
@@ -90,3 +92,39 @@ ROBOTSTXT_OBEY = True
 # Set settings whose default value is deprecated to a future-proof value
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
+
+# --- added ---
+FEEDS = {
+    "fights.csv": {
+        "format": "csv",
+        "encoding": "utf8",
+        "item_classes": [FightItem],
+        "fields": [
+            "outcome",
+            "weight_class",
+            "f1_name",
+            "f2_name",
+            "winner",
+            "loser",
+            "method",
+            "method_details",
+            "end_round",
+            "time",
+            "total_time",
+        ],
+        "overwrite": True,
+    },
+    "fighters.csv": {
+        "format": "csv",
+        "encoding": "utf8",
+        "item_classes": [FighterItem],
+        "fields": [
+            "name",
+            "height",
+            "reach",
+            "stance",
+            "dob",
+        ],
+        "overwrite": True,
+    },
+}
