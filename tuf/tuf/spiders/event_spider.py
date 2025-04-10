@@ -1,7 +1,7 @@
-import scrapy as sp
+import scrapy
 
 
-class EventSpider(sp.Spider):
+class EventSpider(scrapy.Spider):
     name = "events"
     start_urls = [
         "http://ufcstats.com/statistics/events/completed?page=all",
