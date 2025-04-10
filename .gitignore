@@ -1,8 +1,10 @@
 # csv datasets
 fights.csv
 fighters.csv
+enhanced_fights.csv
 */fights.csv
 */fighters.csv
+*/enhanced_fights.csv
 # General
 .DS_Store
 .AppleDouble
