@@ -17,9 +17,7 @@ class FightItem(scrapy.Item):
     winner = scrapy.Field()
     loser = scrapy.Field()
     f1_name = scrapy.Field()
-    # f1_url = scrapy.Field()
     f2_name = scrapy.Field()
-    # f2_url = scrapy.Field()
     method = scrapy.Field()
     method_details = scrapy.Field()
     end_round = scrapy.Field()
@@ -34,7 +32,6 @@ class FighterItem(scrapy.Item):
     """
 
     name = scrapy.Field()
-    # url = scrapy.Field()
     height = scrapy.Field()
     reach = scrapy.Field()
     stance = scrapy.Field()
