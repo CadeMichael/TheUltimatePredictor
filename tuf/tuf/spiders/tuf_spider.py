@@ -75,8 +75,8 @@ class TufSpider(scrapy.Spider):
             # check for draw
             if is_draw:
                 # For draws, both fighters are considered equal
-                winner = None
-                loser = None
+                winner = "N/A"
+                loser = "N/A"
                 outcome = "draw"
             else:
                 # For wins, first fighter is the winner
@@ -127,14 +127,14 @@ class TufSpider(scrapy.Spider):
             fight_item["event_name"] = event_name
             fight_item["event_date"] = event_date
             fight_item["outcome"] = outcome
-            fight_item["winner"] = None if winner is None else winner[0]
-            fight_item["loser"] = None if loser is None else loser[0]
+            fight_item["winner"] = winner if winner == "N/A" else winner[0]
+            fight_item["loser"] = loser if loser == "N/A" else loser[0]
             fight_item["f1_name"] = fighter1[0]
             # fight_item["f1_url"] = fighter1[1]
             fight_item["f2_name"] = fighter2[0]
             # fight_item["f2_url"] = fighter2[1]
             fight_item["method"] = method
-            fight_item["method_details"] = method_details if method_details else None
+            fight_item["method_details"] = method_details if method_details else "N/A"
             fight_item["end_round"] = end_round
             fight_item["time"] = time
             fight_item["total_time"] = total_time
@@ -154,7 +154,6 @@ class TufSpider(scrapy.Spider):
                         url,
                         callback=self.parse_fighter,
                         meta={
-                            # "url": url,
                             "name": name,
                         },
                     )
@@ -164,12 +163,10 @@ class TufSpider(scrapy.Spider):
         fighter_item = FighterItem()
 
         # get information from meta data
-        # url = response.meta["url"]
         name = response.meta["name"]
 
         # add to fighter item
         fighter_item["name"] = name
-        # fighter_item["url"] = url
 
         # only take the first 5 items (Height, Weight, Reach, Stance, DOB)
         stats = response.css("ul.b-list__box-list li.b-list__box-list-item")[:5]
@@ -181,10 +178,10 @@ class TufSpider(scrapy.Spider):
             match title:
                 case "height":
                     # only convert if information is present
-                    value = self.height_to_inches(value) if value != "--" else None
+                    value = self.height_to_inches(value) if value != "--" else ""
                 case "reach":
                     # only convert if information is present
-                    value = float(value.replace('"', "")) if value != "--" else None
+                    value = float(value.replace('"', "")) if value != "--" else ""
                 case "weight":
                     # fighters change weightclass so go by fight
                     continue
@@ -192,7 +189,7 @@ class TufSpider(scrapy.Spider):
                 case "":
                     continue
                 case _:
-                    value = value if value != "--" else None
+                    value = value if value != "--" else ""
             fighter_item[title] = value
 
         # yield new fighter item
