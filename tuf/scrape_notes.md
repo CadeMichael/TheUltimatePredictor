@@ -101,6 +101,54 @@ def allEventFights(response):
         else:
             print(f"{winner[0]} via {method} @ {time} of round {end_round}\n->fight time of {total_time} seconds")
     return fights
+
+# extra fight details
+def str_int(text, default=0):
+    try:
+        return int(text)
+    except:
+        return '""'
+
+def tk_def(td1, td2):
+    no_data = ('""', '""')
+    if len(td1) < 2 or not isinstance(td1[0], int):
+        return no_data
+    if len(td2) < 2 or not isinstance(td2[0], int):
+        return no_data
+    td_def_1 = td2[1] - td2[0]
+    td_def_2 = td1[1] - td1[0]
+    return (td_def_1, td_def_2)
+
+table_body = response.css("tbody.b-fight-details__table-body")[0]
+fighters = table_body.css("a.b-link_style_black::text").getall()
+f1_name_details = fighters[0].strip().lower()
+f2_name_details = fighters[1].strip().lower()
+f1_details = {"name": f1_name_details}
+f2_details = {"name": f2_name_details}
+columns = table_body.css("td.b-fight-details__table-col")
+strike_data = columns[2].css("p.b-fight-details__table-text::text").getall()
+f1_details["f1_strikes"] = int(strike_data[0].strip().split(" ")[0])
+f2_details["f2_strikes"] = int(strike_data[1].strip().split(" ")[0])
+td_data = columns[5].css("p.b-fight-details__table-text::text").getall()
+f1_td_info = list(map(str_int, td_data[0].strip().replace("of","").split()))
+f2_td_info = list(map(str_int, td_data[1].strip().replace("of","").split()))
+f1_details["f1_td"] = f1_td_info[0]
+f2_details["f2_td"] = f2_td_info[0]
+td_defs = tk_def(f1_td_info, f2_td_info)
+f1_details["f1_td_def"] = td_defs[0]
+f2_details["f2_td_def"] = td_defs[1]
+print(f1_details)
+print(f2_details)
+"""
+print(f"f1_name -> {f1_name_details}")
+print(f"f2_name -> {f2_name_details}")
+print(f"fighter1 strikes -> {f1_strikes}")
+print(f"fighter2 strikes -> {f2_strikes}")
+print(f"fighter1 takedowns -> {f1_td}")
+print(f"fighter2 takedowns -> {f2_td}")
+print(f"fighter1 takedowns defended -> {td_defs[0]}")
+print(f"fighter2 takedowns defended -> {td_defs[1]}")
+"""
 ```
 
 # Fighters

@@ -76,7 +76,10 @@ class TufSpider(scrapy.Spider):
             ).getall()
             fighter1 = (fighters[0].strip().lower(), fighter_links[0])
             fighter2 = (fighters[1].strip().lower(), fighter_links[1])
-            # fighters = [fighter1, fighter2]
+            # url for more fight information
+            fight_details_url = row.css(
+                "tr.b-fight-details__table-row::attr(data-link)"
+            )[0].get()
 
             # check for draw
             if is_draw:
@@ -129,16 +132,20 @@ class TufSpider(scrapy.Spider):
             ) * 300 + time_in_seconds  # 300 seconds = 5 minutes
 
             # create a new fight item
-            fight_item = FightItem()
+            fight_item: FightItem = FightItem()
             fight_item["event_name"] = event_name
             fight_item["event_date"] = event_date
             fight_item["outcome"] = outcome
             fight_item["winner"] = winner if winner == "N/A" else winner[0]
             fight_item["loser"] = loser if loser == "N/A" else loser[0]
             fight_item["f1_name"] = fighter1[0]
-            # fight_item["f1_url"] = fighter1[1]
+            fight_item["f1_strikes"] = '""'
+            fight_item["f1_td"] = '""'
+            fight_item["f1_td_def"] = '""'
             fight_item["f2_name"] = fighter2[0]
-            # fight_item["f2_url"] = fighter2[1]
+            fight_item["f2_strikes"] = '""'
+            fight_item["f2_td"] = '""'
+            fight_item["f2_td_def"] = '""'
             fight_item["method"] = method
             fight_item["method_details"] = method_details if method_details else "N/A"
             fight_item["end_round"] = end_round
@@ -146,7 +153,136 @@ class TufSpider(scrapy.Spider):
             fight_item["total_time"] = total_time
             fight_item["weight_class"] = weight_class
 
-            # yield current fight info
+            if fight_details_url: # get additional fight information
+                yield scrapy.Request(
+                    fight_details_url,
+                    callback=self.parse_fight_details,
+                    meta={
+                        "fight_item": fight_item,
+                        "fighter1": fighter1,
+                        "fighter2": fighter2,
+                    }
+                )
+            else: # no additional fight information
+                # follow fighter links for current fight
+                for name, url in [fighter1, fighter2]:
+                    # check if this fighter has been scraped
+                    if url not in self.scraped_fighters:
+                        # mark fighter as scraped
+                        self.scraped_fighters.add(url)
+                        # crawl to fighter info page
+                        yield scrapy.Request(
+                            url,
+                            callback=self.parse_fighter,
+                            meta={
+                                "name": name,
+                            },
+                        )
+                
+
+    def parse_fight_details(self, response):
+        # get meta data from response
+        fight_item: FightItem = response.meta["fight_item"]
+        fighter1 = response.meta["fighter1"]
+        fighter2 = response.meta["fighter2"]
+        f1_name = fighter1[0]
+
+        # --- helper functions ---
+        def str_int(data):
+            try:
+                return int(data)
+            except:
+                return '""'
+
+        def tk_def(td1, td2):
+            no_data = ('""', '""')
+            if len(td1) < 2 or not isinstance(td1[0], int):
+                return no_data
+            if len(td2) < 2 or not isinstance(td2[0], int):
+                return no_data
+            td_def_1 = td2[1] - td2[0]
+            td_def_2 = td1[1] - td1[0]
+            return (td_def_1, td_def_2)
+
+        # --- get extra fight details from response ---
+
+        # first table row contains desired stats
+        table = response.css("tbody.b-fight-details__table-body")
+
+        # some fights have a link but don't have more details
+        if len(table) < 2:
+            # follow fighter links for current fight
+            for name, url in [fighter1, fighter2]:
+                # check if this fighter has been scraped
+                if url not in self.scraped_fighters:
+                    # mark fighter as scraped
+                    self.scraped_fighters.add(url)
+                    # crawl to fighter info page
+                    yield scrapy.Request(
+                        url,
+                        callback=self.parse_fighter,
+                        meta={
+                            "name": name,
+                        },
+                    )
+        else:
+            table_body = table[0]
+            # get fighter names in order they appear on fight stat page
+            fighters_from_details = table_body.css("a.b-link_style_black::text").getall()
+            f1_name_details = fighters_from_details[0].strip().lower()
+            f2_name_details = fighters_from_details[1].strip().lower()
+            # dicts for fighters in the order they appear on fight stats page
+            f1_details = {"name": f1_name_details}
+            f2_details = {"name": f2_name_details}
+            # columns contain statistics
+            columns = table_body.css("td.b-fight-details__table-col")
+            # strike data
+            strike_data = columns[2].css("p.b-fight-details__table-text::text").getall()
+            f1_details["d1_strikes"] = int(strike_data[0].strip().split(" ")[0])
+            f2_details["d2_strikes"] = int(strike_data[1].strip().split(" ")[0])
+            # takedown data
+            td_data = columns[5].css("p.b-fight-details__table-text::text").getall()
+            # data in the form of "completed of attempted"
+            f1_td_info = list(map(str_int, td_data[0].strip().replace("of","").split()))
+            f2_td_info = list(map(str_int, td_data[1].strip().replace("of","").split()))
+            # completed takedowns
+            f1_details["d1_td"] = f1_td_info[0]
+            f2_details["d2_td"] = f2_td_info[0]
+            # calculate defended takedowns
+            td_defs = tk_def(f1_td_info, f2_td_info)
+            # populate dict
+            f1_details["d1_td_def"] = td_defs[0]
+            f2_details["d2_td_def"] = td_defs[1]
+
+            # order in fight table not always the same as order in fight details page
+            if f1_name_details == f1_name: # order matches
+                for k, v in f1_details.items():
+                    if k != "name": # already have name field
+                        # properly label fighter item data
+                        fk = k.replace("d1", "f1")
+                        # populate FighterItem
+                        fight_item[fk] = v
+                for k, v in f2_details.items():
+                    if k != "name":
+                        # properly label fighter item data
+                        fk = k.replace("d2", "f2")
+                        # populate FighterItem
+                        fight_item[fk] = v
+            else: # order doesn't match
+                for k, v in f1_details.items():
+                    if k != "name": # already have name field
+                        # properly label fighter item data
+                        fk = k.replace("d1", "f2")
+                        # populate FighterItem
+                        fight_item[fk] = v
+                for k, v in f2_details.items():
+                    if k != "name":
+                        # properly label fighter item data
+                        fk = k.replace("d2", "f1")
+                        # populate FighterItem
+                        fight_item[fk] = v
+
+            # return fight with added information
             yield fight_item
 
             # follow fighter links for current fight
@@ -166,7 +302,7 @@ class TufSpider(scrapy.Spider):
 
     def parse_fighter(self, response):
         # create fighter item
-        fighter_item = FighterItem()
+        fighter_item: FighterItem = FighterItem()
 
         # get information from meta data
         name = response.meta["name"]
