@@ -114,8 +114,6 @@ FEEDS = {
             "f2_strikes",
             "f2_td",
             "f2_td_def",
-            "winner",
-            "loser",
             "method",
             "method_details",
             "end_round",
