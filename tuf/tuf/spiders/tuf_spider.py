@@ -200,8 +200,8 @@ class TufSpider(scrapy.Spider):
                 return no_data
             if len(td2) < 2 or not isinstance(td2[0], int):
                 return no_data
-            td_def_1 = td2[1] - td2[0]
-            td_def_2 = td1[1] - td1[0]
+            td_def_1 = td2[1] / td2[0]
+            td_def_2 = td1[1] / td1[0]
             return (td_def_1, td_def_2)
 
         # --- get extra fight details from response ---
