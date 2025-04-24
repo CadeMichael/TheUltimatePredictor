@@ -59,7 +59,7 @@ class TufSpider(scrapy.Spider):
         event_date = response.meta["event_date"]
 
         # --- scrape fights ---
-        # Extract all rows (skip the first one, which is the header)
+        # extract all rows (skip the first one, which is the header)
         fight_rows = response.css("tr.b-fight-details__table-row")[1:]
         # each row represents one fight of the current event
         for row in fight_rows:
@@ -83,23 +83,23 @@ class TufSpider(scrapy.Spider):
 
             # check for draw
             if is_draw:
-                # For draws, both fighters are considered equal
+                # for draws, both fighters are considered equal
                 winner = "N/A"
                 loser = "N/A"
                 outcome = "draw"
             else:
-                # For wins, first fighter is the winner
+                # for wins, first fighter is the winner
                 winner = fighter1
                 loser = fighter2
                 outcome = "win"
 
-            # Extract the method of win and check if there's a second line with additional details
+            # extract the method of win and check if there's a second line with additional details
             method = (
                 row.css("td:nth-child(8) .b-fight-details__table-text::text")
                 .get()
                 .strip()
             )
-            # Check if there's a second <p> tag for the type of submission/KO
+            # check if there's a second <p> tag for the type of submission/KO
             method_details = row.css(
                 "td:nth-child(8) .b-fight-details__table-text + .b-fight-details__table-text::text"
             ).get()
