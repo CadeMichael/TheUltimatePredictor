@@ -48,6 +48,22 @@ Analyzing UFC: Submission Insights and Predicting Fights
 
 ---
 
+# UFC Stats
+
+<div style="
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 95%;
+">
+<img v-click="1" v-show="$slidev.nav.clicks === 1" src="./figures/events.png" style="max-width: 100%; max-height: 100%; height: auto;" />
+<img v-click="2" v-show="$slidev.nav.clicks === 2" src="./figures/fights.png"  style="max-width: 100%; max-height: 100%; height: auto;" />
+<img v-click="3" v-show="$slidev.nav.clicks === 3" src="./figures/fight_details.png" style="max-width: 100%; max-height: 100%; height: auto;" />
+</div>
+
+
+---
+
 # Web Scraping
 
 ````md magic-move
